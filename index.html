@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style.css">
+  <title>HTMLで計算を行う</title>
+  <script>
+    var row;
+    
+    function next_permutation(arr) {
+        const len = arr.length;
+        let left = len - 2;
+        while (left >= 0 && arr[left] >= arr[left+1]) left--;
+        if (left < 0) return false;
+        let right = len - 1;
+        while (arr[left] >= arr[right]) right--;
+        { const t = arr[left]; arr[left] = arr[right]; arr[right] = t; }
+        left++;
+        right = len - 1;
+        while (left < right) {
+            { const t = arr[left]; arr[left] = arr[right]; arr[right] = t; }
+            left++;
+            right--;
+        }
+        return true;
+    }
+
+    function MakeTable(){
+        row = parseFloat(document.getElementById('num1').value);
+        var tableEle = document.getElementById('datatable');
+        for (var i = 0; i < row+1; i++) {
+            // テーブルの行をrow+1行追加する
+            var tr = document.createElement('tr');
+        
+            for (var j = 0; j < row+1; j++) {
+            // テーブルの列をrow+1行追加する
+                var td = document.createElement('td');
+                td.id=(i+1)+"-"+(j+1);
+                td.contenteditable="true";
+                tr.appendChild(td);
+            }
+            tableEle.appendChild(tr);
+        }           
+        document.getElementById('1-1').innerHTML="---";
+        //1行目の名前を設定
+        for(var i=1;i<row+1;i++){
+            document.getElementById('1-'+(i+1)).innerHTML="役職名を入力";
+        }
+        //1列目の名前を設定
+        for(var i=1;i<row+1;i++){
+            document.getElementById((i+1)+'-1').innerHTML="PL名を入力";
+        }
+    }
+
+    function CalcPreferMatching(){
+        let score =[];
+        for(var i=0;i<row;i++){
+            let tmparr=[];
+            for(var j=0;j<row;j++){
+                tmparr.push(Number(document.getElementById((i+2)+'-'+(j+2)).innerText));
+            }
+            score.push(tmparr);
+        }
+
+        const len = row;
+        var ans=0;
+        var ansolder=[];
+
+        const older = [];
+        for (let i = 0; i < len; i++) older.push(i);
+
+        //全ての順列の組において、最も高い点数をひとまず保存
+        do {
+            var sum = 0;
+            for (var i = 0; i < row; i++) {
+                sum += score[i][older[i]];
+            }
+
+            //最も高い点数を見つけたら更新
+            if (ans < sum) {
+                ans = sum;
+            }
+        } while (next_permutation(older));
+
+        //複数存在する可能性を考慮
+        const older2 = [];
+        for (let i = 0; i < len; i++) older2.push(i);
+        do {
+            var sum = 0;
+            for (var i = 0; i < row; i++) {
+                sum += score[i][older2[i]];
+            }
+
+            //最も高い点数と同じ点数を見つけたら
+            if (ans == sum) {
+                //その時の組み合わせを保存する
+                let arr=[];
+                for(var i=0;i<row;i++){
+                    arr.push(older2[i]);
+                }
+                ansolder.push(arr);
+            }
+        } while (next_permutation(older2));
+
+        var parent=document.getElementById('resulttext');
+        var tempdiv=document.createElement('div');
+        tempdiv.innerHTML='点数が最も高くなる組み合わせは' + ansolder.length+'通り見つかりました\n';
+        parent.appendChild(tempdiv);
+
+        for(var i=0;i<ansolder.length;i++){
+            if(ansolder.length!=1){
+                let div = document.createElement('div');
+                div.innerHTML='\n\n'+(i+1)+'パターン目\n'
+                parent.appendChild(div);
+            }
+
+            for(var j=0;j<row;j++){
+                let div = document.createElement('div');
+                
+                div.innerHTML=document.getElementById((j+2)+'-1').innerHTML+'さん：'
+                +document.getElementById('1-'+(ansolder[i][j]+2)).innerHTML+'（'+score[j][ansolder[i][j]]+'点）';
+                parent.appendChild(div);
+            }
+
+
+        }
+        
+        
+    }
+  </script>
+</head>
+<body>
+  <h1>最適マッチングを計算</h1>
+  <input type="text" id="num1" placeholder="人数を入力">
+  <button onclick="MakeTable()">表を作成</button>
+  <p id="result"></p>
+  <table id="datatable" border="1"  cellpadding="10" contenteditable="true">
+    </table>
+    <button onclick="CalcPreferMatching()">結果を表示</button>
+    <p id="resulttext"></p>
+</body>
+</html>
